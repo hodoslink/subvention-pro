@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { PathProgress } from "@/components/PathProgress";
 import { SiretSearch } from "@/components/SiretSearch";
 import { FileDrop } from "@/components/FileDrop";
+import { VerifiedInfoCard } from "@/components/VerifiedInfoCard";
 import { StepCard, Field, NavButtons } from "@/components/StepUI";
 
 const STEPS = [
@@ -47,6 +48,8 @@ type FormState = {
   periode_fin: string;
 };
 
+type DirigeantTrouve = { nom: string; prenoms: string; qualite: string };
+
 const initialState: FormState = {
   nom: "", siret: "", siren: "", rna: "", adresse: "", code_postal: "", ville: "",
   forme_juridique: "", nb_membres: "", date_creation: "",
@@ -64,6 +67,7 @@ export default function NouvelleDemande() {
   const [stepIndex, setStepIndex] = useState(0);
   const [form, setForm] = useState<FormState>(initialState);
   const [budget, setBudget] = useState<BudgetLigne[]>([{ poste: "", montant: "" }]);
+  const [dirigeantsTrouves, setDirigeantsTrouves] = useState<DirigeantTrouve[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -132,26 +136,63 @@ export default function NouvelleDemande() {
             subtitle="On retrouve les informations officielles automatiquement — pas besoin de ressortir les statuts tout de suite."
           >
             <SiretSearch
-              onSelect={(s) =>
+              onSelect={(s) => {
                 update({
                   nom: s.nom,
                   siret: s.siret,
                   siren: s.siren,
+                  rna: s.rna || "",
                   adresse: s.adresse,
                   code_postal: s.code_postal,
                   ville: s.ville,
                   forme_juridique: s.forme_juridique,
                   date_creation: s.date_creation || "",
-                })
-              }
+                });
+                setDirigeantsTrouves(s.dirigeants || []);
+              }}
             />
             {form.nom && (
-              <div className="bg-sapin-soft rounded-xl p-4 text-sm text-sapin-deep">
-                <p className="font-semibold mb-1">{form.nom}</p>
-                <p>{form.adresse}, {form.code_postal} {form.ville}</p>
-              </div>
+              <VerifiedInfoCard
+                title="Voici ce qu'on a retrouvé — vérifiez que tout est juste"
+                rows={[
+                  { label: "Nom", value: form.nom },
+                  { label: "Adresse", value: `${form.adresse}, ${form.code_postal} ${form.ville}` },
+                  { label: "SIREN", value: form.siren },
+                  { label: "N° RNA", value: form.rna || "Non trouvé automatiquement" },
+                  ...(dirigeantsTrouves.length > 0
+                    ? [{
+                        label: "Dirigeant(s) connu(s)",
+                        value: dirigeantsTrouves
+                          .map((d) => `${d.prenoms} ${d.nom} (${d.qualite})`)
+                          .join(", "),
+                      }]
+                    : []),
+                ]}
+                note={
+                  form.rna
+                    ? "Le numéro RNA peut parfois être ancien — un coup d'œil sur le Journal Officiel permet de confirmer qu'il est toujours à jour."
+                    : "On n'a pas trouvé le numéro RNA automatiquement — vous le trouverez sur le récépissé de déclaration, ou via le lien ci-dessous."
+                }
+                links={[
+                  {
+                    label: "Vérifier sur l'Annuaire des Entreprises",
+                    url: `https://annuaire-entreprises.data.gouv.fr/etablissement/${form.siret || form.siren}`,
+                  },
+                  {
+                    label: "Rechercher sur le Journal Officiel",
+                    url: `https://www.journal-officiel.gouv.fr/pages/associations-recherche/?denomination=${encodeURIComponent(form.nom)}`,
+                  },
+                ]}
+              />
             )}
-            <Field label="Numéro RNA (si vous l'avez — sinon on le retrouvera ensemble)">
+            <Field
+              label="Numéro RNA"
+              hint={
+                form.rna
+                  ? "Pré-rempli automatiquement — corrigez si besoin."
+                  : "On ne l'a pas trouvé automatiquement. Vous le trouverez sur le récépissé de déclaration de votre association."
+              }
+            >
               <input
                 className="field-input"
                 placeholder="Ex. W123456789"
@@ -244,6 +285,25 @@ export default function NouvelleDemande() {
             title="Quelques documents"
             subtitle="Tout n'est pas obligatoire dès maintenant — on peut continuer et vous les redemander si besoin."
           >
+            <div className="bg-cream-deep rounded-xl p-4 text-sm text-ink-soft space-y-2">
+              <p>
+                Ces documents ne sont malheureusement pas téléchargeables en
+                ligne automatiquement — ils sont conservés par votre
+                association ou par votre préfecture.
+              </p>
+              <p>
+                Pas sous la main ?{" "}
+                <a
+                  href="https://www.service-public.gouv.fr/associations/vosdroits/F1119"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-terracotta-deep font-semibold underline"
+                >
+                  Voici comment les redemander à votre greffe
+                </a>
+                .
+              </p>
+            </div>
             <FileDrop label="Statuts de l'association" onFile={() => {}} optional />
             <FileDrop label="Récépissé RNA ou extrait Journal Officiel" onFile={() => {}} optional />
             <FileDrop label="RIB de l'association" onFile={() => {}} />

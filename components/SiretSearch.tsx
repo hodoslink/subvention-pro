@@ -2,15 +2,24 @@
 
 import { useState, useEffect, useRef } from "react";
 
+type Dirigeant = {
+  nom: string;
+  prenoms: string;
+  qualite: string;
+};
+
 type Suggestion = {
   nom: string;
   siren: string;
   siret: string;
+  rna: string | null;
   adresse: string;
   code_postal: string;
   ville: string;
   forme_juridique: string;
   date_creation: string | null;
+  est_association: boolean | null;
+  dirigeants: Dirigeant[];
 };
 
 export function SiretSearch({
