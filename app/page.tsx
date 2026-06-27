@@ -23,7 +23,7 @@ export default function Home() {
           réponses en dossier solide pour la mairie ou le département.
         </p>
 
-        <div className="bg-white rounded-2xl border border-border-soft p-6 mb-10 text-left">
+        <div className="animate-fade-in bg-white rounded-2xl border border-border-soft shadow-[0_4px_16px_-4px_rgba(31,36,33,0.08)] p-6 mb-10 text-left">
           <p className="text-sm font-semibold text-ink mb-4">Comment ça se passe :</p>
           <ol className="space-y-3">
             {[
@@ -43,7 +43,7 @@ export default function Home() {
 
         <Link
           href="/nouvelle-demande"
-          className="inline-flex items-center gap-2 bg-terracotta hover:bg-terracotta-deep text-white font-semibold text-lg px-8 py-4 rounded-full shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5"
+          className="inline-flex items-center gap-2 bg-terracotta hover:bg-terracotta-deep text-white font-semibold text-lg px-8 py-4 rounded-full shadow-[0_2px_8px_-2px_rgba(143,85,48,0.4)] hover:shadow-[0_8px_20px_-6px_rgba(143,85,48,0.45)] transition-all duration-200 hover:-translate-y-0.5"
         >
           Commencer
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -54,6 +54,21 @@ export default function Home() {
         <p className="text-sm text-ink-soft mt-6">
           Vous pouvez vous arrêter et reprendre plus tard, rien n&apos;est perdu.
         </p>
+
+        <div className="flex items-center justify-center gap-5 mt-10 pt-6 border-t border-border-soft">
+          <span className="inline-flex items-center gap-1.5 text-xs text-ink-soft">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-sapin">
+              <rect x="3" y="11" width="18" height="10" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            Données protégées (RGPD)
+          </span>
+          <span className="inline-flex items-center gap-1.5 text-xs text-ink-soft">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-sapin">
+              <circle cx="12" cy="12" r="9" /><path d="M9 12l2 2 4-4" />
+            </svg>
+            Aucun frais caché
+          </span>
+        </div>
       </div>
     </main>
   );

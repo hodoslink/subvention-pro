@@ -360,8 +360,9 @@ export default function NouvelleDemande() {
               hint="Exemple : « Des séances hebdomadaires encadrées par un éducateur, pour des personnes en sortie de traitement, afin qu'elles retrouvent une activité physique en sécurité. »"
             >
               <textarea
-                className="field-input min-h-[120px]"
-                placeholder="Décrivez le projet ici…"
+                rows={5}
+                className="w-full text-base leading-relaxed p-4 rounded-xl border-[1.5px] border-border-soft bg-white text-ink focus:border-sapin focus:ring-4 focus:ring-sapin-soft focus:outline-none placeholder:text-ink-soft/60 resize-y"
+                placeholder="Écrivez ici, avec vos mots — quelques phrases suffisent…"
                 value={form.objectif_projet}
                 onChange={(e) => update({ objectif_projet: e.target.value })}
               />
@@ -399,10 +400,25 @@ export default function NouvelleDemande() {
                   type="date"
                   className="field-input"
                   value={form.periode_debut}
-                  onChange={(e) => update({ periode_debut: e.target.value })}
+                  onChange={(e) => {
+                    const debut = e.target.value;
+                    if (debut) {
+                      const d = new Date(debut);
+                      d.setFullYear(d.getFullYear() + 1);
+                      const finProposee = d.toISOString().split("T")[0];
+                      update({
+                        periode_debut: debut,
+                        // On ne propose la fin automatiquement que si elle
+                        // n'a pas déjà été choisie à la main par la personne.
+                        periode_fin: form.periode_fin || finProposee,
+                      });
+                    } else {
+                      update({ periode_debut: debut });
+                    }
+                  }}
                 />
               </Field>
-              <Field label="Et se termine quand ?">
+              <Field label="Et se termine quand ?" hint="Pré-rempli à un an plus tard — modifiable si besoin.">
                 <input
                   type="date"
                   className="field-input"
@@ -489,12 +505,14 @@ export default function NouvelleDemande() {
               <SummaryBlock title="Projet" rows={[
                 ["Bailleur", `${form.bailleur_type === "ville" ? "Ville" : "Département"} — ${form.bailleur_nom}`],
                 ["Titre", form.titre_projet],
-                ["Montant demandé", form.montant_demande ? `${form.montant_demande} €` : "—"],
+                ["Description", form.objectif_projet],
                 ["Bénéficiaires", `${form.nb_beneficiaires_estime || "—"} personnes — ${form.public_beneficiaire || "—"}`],
+                ["Période", `${form.periode_debut || "—"} → ${form.periode_fin || "—"}`],
+                ["Montant demandé", form.montant_demande ? `${form.montant_demande} €` : "—"],
               ]} />
             </div>
             {error && (
-              <p className="text-error text-sm bg-red-50 rounded-xl p-3">{error}</p>
+              <p className="text-error text-sm bg-error-soft rounded-xl p-3">{error}</p>
             )}
             <NavButtons
               onBack={back}
@@ -513,13 +531,23 @@ function SummaryBlock({ title, rows }: { title: string; rows: [string, string][]
   return (
     <div className="bg-cream-deep rounded-xl p-4">
       <p className="text-sm font-semibold text-sapin-deep mb-2">{title}</p>
-      <dl className="space-y-1.5">
-        {rows.map(([label, value]) => (
-          <div key={label} className="flex justify-between gap-3 text-sm">
-            <dt className="text-ink-soft">{label}</dt>
-            <dd className="text-ink font-medium text-right">{value || "—"}</dd>
-          </div>
-        ))}
+      <dl className="space-y-2.5">
+        {rows.map(([label, value]) => {
+          const isLong = (value || "").length > 40;
+          return (
+            <div key={label} className={isLong ? "" : "flex justify-between gap-3"}>
+              <dt className="text-sm text-ink-soft">{label}</dt>
+              <dd
+                className={[
+                  "text-sm text-ink font-medium",
+                  isLong ? "mt-1 leading-relaxed" : "text-right",
+                ].join(" ")}
+              >
+                {value || "—"}
+              </dd>
+            </div>
+          );
+        })}
       </dl>
     </div>
   );

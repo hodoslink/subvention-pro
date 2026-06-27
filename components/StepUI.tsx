@@ -12,9 +12,9 @@ export function StepCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-3xl border border-border-soft shadow-sm p-7 md:p-10">
+    <div className="animate-fade-in bg-white rounded-2xl border border-border-soft shadow-[0_4px_16px_-4px_rgba(31,36,33,0.08)] p-7 md:p-10">
       {eyebrow && (
-        <p className="text-sm font-semibold text-terracotta-deep mb-2">{eyebrow}</p>
+        <p className="text-sm font-semibold text-terracotta-deep mb-2 tracking-wide">{eyebrow}</p>
       )}
       <h2 className="font-display text-2xl md:text-3xl text-sapin-deep mb-2 leading-snug">
         {title}
@@ -75,7 +75,7 @@ export function NavButtons({
         type="button"
         onClick={onNext}
         disabled={nextDisabled || loading}
-        className="inline-flex items-center gap-2 bg-terracotta hover:bg-terracotta-deep disabled:bg-border-soft disabled:text-ink-soft disabled:cursor-not-allowed text-white font-semibold px-7 py-3.5 rounded-full shadow-sm transition-all hover:shadow-md"
+        className="inline-flex items-center gap-2 bg-terracotta hover:bg-terracotta-deep disabled:bg-border-soft disabled:text-ink-soft disabled:cursor-not-allowed text-white font-semibold px-7 py-3.5 rounded-full shadow-[0_2px_8px_-2px_rgba(143,85,48,0.4)] hover:shadow-[0_6px_16px_-4px_rgba(143,85,48,0.45)] transition-all duration-200 hover:-translate-y-px"
       >
         {loading ? (
           <>
