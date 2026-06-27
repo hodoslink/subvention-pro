@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+:root {
+  /* Palette — chaude, rassurante, ancrée dans le sport-santé associatif */
+  --cream: #fdf8f3;
+  --cream-deep: #f6efe5;
+  --ink: #3d3833;
+  --ink-soft: #6b6258;
+  --sapin: #2c5530;
+  --sapin-deep: #1d3a20;
+  --sapin-soft: #e8f0e6;
+  --terracotta: #c77b4a;
+  --terracotta-deep: #a8602f;
+  --terracotta-soft: #f5e6da;
+  --border-soft: #e8dfd3;
+  --error: #b54834;
+}
+
+@theme inline {
+  --color-cream: var(--cream);
+  --color-cream-deep: var(--cream-deep);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-sapin: var(--sapin);
+  --color-sapin-deep: var(--sapin-deep);
+  --color-sapin-soft: var(--sapin-soft);
+  --color-terracotta: var(--terracotta);
+  --color-terracotta-deep: var(--terracotta-deep);
+  --color-terracotta-soft: var(--terracotta-soft);
+  --color-border-soft: var(--border-soft);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+h1, h2, h3, .font-display {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+}
+
+/* Focus visible cohérent partout */
+:focus-visible {
+  outline: 3px solid var(--terracotta);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Champs de formulaire — grands, lisibles, faciles à viser */
+.field-input {
+  width: 100%;
+  font-size: 1.05rem;
+  padding: 1rem 1.1rem;
+  border: 1.5px solid var(--border-soft);
+  border-radius: 12px;
+  background: #ffffff;
+  color: var(--ink);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.field-input:focus {
+  border-color: var(--sapin);
+  box-shadow: 0 0 0 4px var(--sapin-soft);
+  outline: none;
+}
+
+.field-input::placeholder {
+  color: var(--ink-soft);
+  opacity: 0.6;
+}
