@@ -1,0 +1,466 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { PathProgress } from "@/components/PathProgress";
+import { SiretSearch } from "@/components/SiretSearch";
+import { FileDrop } from "@/components/FileDrop";
+import { StepCard, Field, NavButtons } from "@/components/StepUI";
+
+const STEPS = [
+  { label: "Votre association" },
+  { label: "Qui contacter" },
+  { label: "Documents" },
+  { label: "Votre projet" },
+  { label: "Le budget" },
+  { label: "Récapitulatif" },
+];
+
+type FormState = {
+  // Identité association
+  nom: string;
+  siret: string;
+  siren: string;
+  rna: string;
+  adresse: string;
+  code_postal: string;
+  ville: string;
+  forme_juridique: string;
+  nb_membres: string;
+  date_creation: string;
+  // Contact
+  contact_nom: string;
+  contact_role: string;
+  contact_email: string;
+  contact_telephone: string;
+  iban: string;
+  bic: string;
+  // Projet
+  bailleur_type: string;
+  bailleur_nom: string;
+  montant_demande: string;
+  titre_projet: string;
+  objectif_projet: string;
+  public_beneficiaire: string;
+  nb_beneficiaires_estime: string;
+  periode_debut: string;
+  periode_fin: string;
+};
+
+const initialState: FormState = {
+  nom: "", siret: "", siren: "", rna: "", adresse: "", code_postal: "", ville: "",
+  forme_juridique: "", nb_membres: "", date_creation: "",
+  contact_nom: "", contact_role: "", contact_email: "", contact_telephone: "",
+  iban: "", bic: "",
+  bailleur_type: "ville", bailleur_nom: "", montant_demande: "",
+  titre_projet: "", objectif_projet: "", public_beneficiaire: "",
+  nb_beneficiaires_estime: "", periode_debut: "", periode_fin: "",
+};
+
+type BudgetLigne = { poste: string; montant: string };
+
+export default function NouvelleDemande() {
+  const router = useRouter();
+  const [stepIndex, setStepIndex] = useState(0);
+  const [form, setForm] = useState<FormState>(initialState);
+  const [budget, setBudget] = useState<BudgetLigne[]>([{ poste: "", montant: "" }]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const update = (patch: Partial<FormState>) => setForm((f) => ({ ...f, ...patch }));
+
+  const next = () => setStepIndex((i) => Math.min(i + 1, STEPS.length - 1));
+  const back = () => setStepIndex((i) => Math.max(i - 1, 0));
+
+  const submit = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const assoRes = await fetch("/api/associations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          nb_membres: form.nb_membres ? Number(form.nb_membres) : null,
+          date_creation: form.date_creation || null,
+        }),
+      });
+      const assoData = await assoRes.json();
+      if (!assoRes.ok) throw new Error(assoData.error || "Erreur association");
+
+      const demandeRes = await fetch("/api/demandes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          association_id: assoData.association.id,
+          bailleur_type: form.bailleur_type,
+          bailleur_nom: form.bailleur_nom,
+          montant_demande: form.montant_demande ? Number(form.montant_demande) : null,
+          titre_projet: form.titre_projet,
+          objectif_projet: form.objectif_projet,
+          public_beneficiaire: form.public_beneficiaire,
+          nb_beneficiaires_estime: form.nb_beneficiaires_estime
+            ? Number(form.nb_beneficiaires_estime)
+            : null,
+          periode_debut: form.periode_debut || null,
+          periode_fin: form.periode_fin || null,
+          budget_previsionnel_json: budget.filter((b) => b.poste),
+        }),
+      });
+      const demandeData = await demandeRes.json();
+      if (!demandeRes.ok) throw new Error(demandeData.error || "Erreur demande");
+
+      router.push("/merci");
+    } catch (e: any) {
+      setError(e.message || "Une erreur est survenue, réessayez dans un instant.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <main className="flex-1 px-4 md:px-6 py-10 md:py-14">
+      <div className="max-w-2xl mx-auto">
+        <div className="mb-8">
+          <PathProgress steps={STEPS} currentIndex={stepIndex} />
+        </div>
+
+        {stepIndex === 0 && (
+          <StepCard
+            eyebrow="Étape 1"
+            title="Parlez-nous de votre association"
+            subtitle="On retrouve les informations officielles automatiquement — pas besoin de ressortir les statuts tout de suite."
+          >
+            <SiretSearch
+              onSelect={(s) =>
+                update({
+                  nom: s.nom,
+                  siret: s.siret,
+                  siren: s.siren,
+                  adresse: s.adresse,
+                  code_postal: s.code_postal,
+                  ville: s.ville,
+                  forme_juridique: s.forme_juridique,
+                  date_creation: s.date_creation || "",
+                })
+              }
+            />
+            {form.nom && (
+              <div className="bg-sapin-soft rounded-xl p-4 text-sm text-sapin-deep">
+                <p className="font-semibold mb-1">{form.nom}</p>
+                <p>{form.adresse}, {form.code_postal} {form.ville}</p>
+              </div>
+            )}
+            <Field label="Numéro RNA (si vous l'avez — sinon on le retrouvera ensemble)">
+              <input
+                className="field-input"
+                placeholder="Ex. W123456789"
+                value={form.rna}
+                onChange={(e) => update({ rna: e.target.value })}
+              />
+            </Field>
+            <Field label="Combien de membres compte l'association environ ?">
+              <input
+                type="number"
+                className="field-input"
+                placeholder="Ex. 180"
+                value={form.nb_membres}
+                onChange={(e) => update({ nb_membres: e.target.value })}
+              />
+            </Field>
+            <NavButtons showBack={false} onNext={next} nextDisabled={!form.nom} />
+          </StepCard>
+        )}
+
+        {stepIndex === 1 && (
+          <StepCard
+            eyebrow="Étape 2"
+            title="Qui pouvons-nous contacter ?"
+            subtitle="La personne qui pourra répondre à nos petites questions pendant la rédaction."
+          >
+            <Field label="Nom et prénom">
+              <input
+                className="field-input"
+                placeholder="Ex. Marie Dupont"
+                value={form.contact_nom}
+                onChange={(e) => update({ contact_nom: e.target.value })}
+              />
+            </Field>
+            <Field label="Fonction dans l'association">
+              <input
+                className="field-input"
+                placeholder="Ex. Présidente, Trésorier…"
+                value={form.contact_role}
+                onChange={(e) => update({ contact_role: e.target.value })}
+              />
+            </Field>
+            <Field label="Email">
+              <input
+                type="email"
+                className="field-input"
+                placeholder="exemple@association.fr"
+                value={form.contact_email}
+                onChange={(e) => update({ contact_email: e.target.value })}
+              />
+            </Field>
+            <Field label="Téléphone" hint="Utile si on a besoin d'une réponse rapide.">
+              <input
+                type="tel"
+                className="field-input"
+                placeholder="06 00 00 00 00"
+                value={form.contact_telephone}
+                onChange={(e) => update({ contact_telephone: e.target.value })}
+              />
+            </Field>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Field label="IBAN" hint="Pour le versement de la subvention.">
+                <input
+                  className="field-input"
+                  placeholder="FR76 XXXX XXXX…"
+                  value={form.iban}
+                  onChange={(e) => update({ iban: e.target.value })}
+                />
+              </Field>
+              <Field label="BIC">
+                <input
+                  className="field-input"
+                  placeholder="Ex. BNPAFRPP"
+                  value={form.bic}
+                  onChange={(e) => update({ bic: e.target.value })}
+                />
+              </Field>
+            </div>
+            <NavButtons
+              onBack={back}
+              onNext={next}
+              nextDisabled={!form.contact_nom || !form.contact_email}
+            />
+          </StepCard>
+        )}
+
+        {stepIndex === 2 && (
+          <StepCard
+            eyebrow="Étape 3"
+            title="Quelques documents"
+            subtitle="Tout n'est pas obligatoire dès maintenant — on peut continuer et vous les redemander si besoin."
+          >
+            <FileDrop label="Statuts de l'association" onFile={() => {}} optional />
+            <FileDrop label="Récépissé RNA ou extrait Journal Officiel" onFile={() => {}} optional />
+            <FileDrop label="RIB de l'association" onFile={() => {}} />
+            <FileDrop label="Derniers comptes approuvés" onFile={() => {}} optional />
+            <FileDrop label="Dernier rapport d'activité" onFile={() => {}} optional />
+            <NavButtons onBack={back} onNext={next} />
+          </StepCard>
+        )}
+
+        {stepIndex === 3 && (
+          <StepCard
+            eyebrow="Étape 4"
+            title="Votre projet, avec vos mots"
+            subtitle="Racontez-le comme vous le feriez à quelqu'un qui ne connaît pas l'association. On reformule ensuite pour le dossier officiel."
+          >
+            <div className="flex gap-3">
+              {[
+                { v: "ville", l: "Ville / mairie" },
+                { v: "departement", l: "Département" },
+              ].map((opt) => (
+                <button
+                  key={opt.v}
+                  type="button"
+                  onClick={() => update({ bailleur_type: opt.v })}
+                  className={[
+                    "flex-1 py-3 rounded-xl border-2 font-medium transition-all",
+                    form.bailleur_type === opt.v
+                      ? "border-sapin bg-sapin-soft text-sapin-deep"
+                      : "border-border-soft text-ink-soft hover:border-sapin/40",
+                  ].join(" ")}
+                >
+                  {opt.l}
+                </button>
+              ))}
+            </div>
+            <Field label="Nom de la collectivité visée">
+              <input
+                className="field-input"
+                placeholder="Ex. Mairie de Pantin"
+                value={form.bailleur_nom}
+                onChange={(e) => update({ bailleur_nom: e.target.value })}
+              />
+            </Field>
+            <Field label="Titre simple de votre projet">
+              <input
+                className="field-input"
+                placeholder="Ex. Ateliers d'activité physique adaptée pour seniors"
+                value={form.titre_projet}
+                onChange={(e) => update({ titre_projet: e.target.value })}
+              />
+            </Field>
+            <Field
+              label="Concrètement, qu'est-ce que ce projet change pour vos membres ?"
+              hint="Exemple : « Des séances hebdomadaires encadrées par un éducateur, pour des personnes en sortie de traitement, afin qu'elles retrouvent une activité physique en sécurité. »"
+            >
+              <textarea
+                className="field-input min-h-[120px]"
+                placeholder="Décrivez le projet ici…"
+                value={form.objectif_projet}
+                onChange={(e) => update({ objectif_projet: e.target.value })}
+              />
+            </Field>
+            <Field label="Qui en bénéficie ?" hint="Ex. seniors, patients en rémission, jeunes du quartier…">
+              <input
+                className="field-input"
+                value={form.public_beneficiaire}
+                onChange={(e) => update({ public_beneficiaire: e.target.value })}
+              />
+            </Field>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Field label="Combien de personnes environ ?">
+                <input
+                  type="number"
+                  className="field-input"
+                  placeholder="Ex. 40"
+                  value={form.nb_beneficiaires_estime}
+                  onChange={(e) => update({ nb_beneficiaires_estime: e.target.value })}
+                />
+              </Field>
+              <Field label="Montant demandé (€)">
+                <input
+                  type="number"
+                  className="field-input"
+                  placeholder="Ex. 800"
+                  value={form.montant_demande}
+                  onChange={(e) => update({ montant_demande: e.target.value })}
+                />
+              </Field>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Field label="Le projet démarre quand ?">
+                <input
+                  type="date"
+                  className="field-input"
+                  value={form.periode_debut}
+                  onChange={(e) => update({ periode_debut: e.target.value })}
+                />
+              </Field>
+              <Field label="Et se termine quand ?">
+                <input
+                  type="date"
+                  className="field-input"
+                  value={form.periode_fin}
+                  onChange={(e) => update({ periode_fin: e.target.value })}
+                />
+              </Field>
+            </div>
+            <NavButtons
+              onBack={back}
+              onNext={next}
+              nextDisabled={!form.titre_projet || !form.objectif_projet}
+            />
+          </StepCard>
+        )}
+
+        {stepIndex === 4 && (
+          <StepCard
+            eyebrow="Étape 5"
+            title="Le budget, ligne par ligne"
+            subtitle="Listez simplement à quoi servira l'argent. Pas besoin d'être expert-comptable."
+          >
+            <div className="space-y-3">
+              {budget.map((ligne, i) => (
+                <div key={i} className="flex gap-3">
+                  <input
+                    className="field-input flex-1"
+                    placeholder="Ex. Salaire de l'éducateur sportif"
+                    value={ligne.poste}
+                    onChange={(e) => {
+                      const copy = [...budget];
+                      copy[i].poste = e.target.value;
+                      setBudget(copy);
+                    }}
+                  />
+                  <input
+                    type="number"
+                    className="field-input w-32"
+                    placeholder="€"
+                    value={ligne.montant}
+                    onChange={(e) => {
+                      const copy = [...budget];
+                      copy[i].montant = e.target.value;
+                      setBudget(copy);
+                    }}
+                  />
+                  {budget.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setBudget(budget.filter((_, idx) => idx !== i))}
+                      className="text-ink-soft hover:text-error px-2"
+                      aria-label="Supprimer cette ligne"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => setBudget([...budget, { poste: "", montant: "" }])}
+              className="text-terracotta-deep font-semibold text-sm flex items-center gap-1.5"
+            >
+              + Ajouter une ligne
+            </button>
+            <NavButtons onBack={back} onNext={next} />
+          </StepCard>
+        )}
+
+        {stepIndex === 5 && (
+          <StepCard
+            eyebrow="Dernière étape"
+            title="On relit ensemble, puis c'est parti"
+            subtitle="Vérifiez que tout est correct. Vous pourrez toujours nous écrire pour ajuster un détail."
+          >
+            <div className="space-y-4">
+              <SummaryBlock title="Association" rows={[
+                ["Nom", form.nom],
+                ["Adresse", `${form.adresse}, ${form.code_postal} ${form.ville}`],
+                ["Contact", `${form.contact_nom} (${form.contact_role || "—"})`],
+                ["Email", form.contact_email],
+              ]} />
+              <SummaryBlock title="Projet" rows={[
+                ["Bailleur", `${form.bailleur_type === "ville" ? "Ville" : "Département"} — ${form.bailleur_nom}`],
+                ["Titre", form.titre_projet],
+                ["Montant demandé", form.montant_demande ? `${form.montant_demande} €` : "—"],
+                ["Bénéficiaires", `${form.nb_beneficiaires_estime || "—"} personnes — ${form.public_beneficiaire || "—"}`],
+              ]} />
+            </div>
+            {error && (
+              <p className="text-error text-sm bg-red-50 rounded-xl p-3">{error}</p>
+            )}
+            <NavButtons
+              onBack={back}
+              onNext={submit}
+              nextLabel="Envoyer mon dossier"
+              loading={loading}
+            />
+          </StepCard>
+        )}
+      </div>
+    </main>
+  );
+}
+
+function SummaryBlock({ title, rows }: { title: string; rows: [string, string][] }) {
+  return (
+    <div className="bg-cream-deep rounded-xl p-4">
+      <p className="text-sm font-semibold text-sapin-deep mb-2">{title}</p>
+      <dl className="space-y-1.5">
+        {rows.map(([label, value]) => (
+          <div key={label} className="flex justify-between gap-3 text-sm">
+            <dt className="text-ink-soft">{label}</dt>
+            <dd className="text-ink font-medium text-right">{value || "—"}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
