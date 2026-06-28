@@ -60,6 +60,12 @@ create table demandes (
   periode_fin date,
   budget_previsionnel_json jsonb,     -- lignes de budget {poste, montant}
 
+  -- Première demande vs renouvellement
+  type_demande text default 'premiere',   -- 'premiere' | 'renouvellement'
+  bilan_subvention_anterieure numeric,    -- montant obtenu l'année précédente (renouvellement)
+  bilan_activites text,                   -- description des actions réalisées (renouvellement)
+  bilan_nb_beneficiaires_reel integer,    -- bénéficiaires réels exercice précédent (renouvellement)
+
   -- Workflow
   statut text default 'collecte',
   -- collecte -> rédaction -> contrôle_compta -> déposé -> décision_attente -> accepté/refusé

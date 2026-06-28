@@ -135,6 +135,23 @@ const MONTANT_MAX = 1_000_000; // garde-fou large mais raisonnable pour ce segme
 
 export const demandeSchema = z.object({
   association_id: z.string().uuid("Identifiant d'association invalide."),
+  type_demande: z.enum(["premiere", "renouvellement"], {
+    message: "Type de demande invalide.",
+  }).default("premiere"),
+  bilan_subvention_anterieure: z
+    .number()
+    .min(0)
+    .max(1_000_000)
+    .nullable()
+    .optional(),
+  bilan_activites: longText(3000, { optional: true }),
+  bilan_nb_beneficiaires_reel: z
+    .number()
+    .int()
+    .min(0)
+    .max(1_000_000)
+    .nullable()
+    .optional(),
   bailleur_type: z.enum(["ville", "departement"], {
     message: "Type de bailleur invalide.",
   }),

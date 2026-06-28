@@ -34,6 +34,11 @@ type FormState = {
   contact_role: string;
   contact_email: string;
   contact_telephone: string;
+  // Nature de la demande
+  type_demande: "premiere" | "renouvellement";
+  bilan_subvention_anterieure: string;
+  bilan_activites: string;
+  bilan_nb_beneficiaires_reel: string;
   // Projet
   bailleur_type: string;
   bailleur_nom: string;
@@ -52,6 +57,7 @@ const initialState: FormState = {
   nom: "", siret: "", siren: "", rna: "", adresse: "", code_postal: "", ville: "",
   forme_juridique: "", nb_membres: "", date_creation: "",
   contact_nom: "", contact_role: "", contact_email: "", contact_telephone: "",
+  type_demande: "premiere", bilan_subvention_anterieure: "", bilan_activites: "", bilan_nb_beneficiaires_reel: "",
   bailleur_type: "ville", bailleur_nom: "", montant_demande: "",
   titre_projet: "", objectif_projet: "", public_beneficiaire: "",
   nb_beneficiaires_estime: "", periode_debut: "", periode_fin: "",
@@ -94,6 +100,14 @@ export default function NouvelleDemande() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           association_id: assoData.association.id,
+          type_demande: form.type_demande,
+          bilan_subvention_anterieure: form.type_demande === "renouvellement" && form.bilan_subvention_anterieure
+            ? Number(form.bilan_subvention_anterieure)
+            : null,
+          bilan_activites: form.type_demande === "renouvellement" ? form.bilan_activites : "",
+          bilan_nb_beneficiaires_reel: form.type_demande === "renouvellement" && form.bilan_nb_beneficiaires_reel
+            ? Number(form.bilan_nb_beneficiaires_reel)
+            : null,
           bailleur_type: form.bailleur_type,
           bailleur_nom: form.bailleur_nom,
           montant_demande: form.montant_demande ? Number(form.montant_demande) : null,
@@ -294,6 +308,13 @@ export default function NouvelleDemande() {
             <FileDrop label="Récépissé RNA ou extrait Journal Officiel" onFile={() => {}} optional />
             <FileDrop label="Derniers comptes approuvés" onFile={() => {}} optional />
             <FileDrop label="Dernier rapport d'activité" onFile={() => {}} optional />
+            {form.type_demande === "renouvellement" && (
+              <FileDrop
+                label="Justification de la subvention précédente (bilan financier, factures acquittées)"
+                onFile={() => {}}
+                optional
+              />
+            )}
             <NavButtons onBack={back} onNext={next} />
           </StepCard>
         )}
@@ -304,6 +325,80 @@ export default function NouvelleDemande() {
             title="Votre projet, avec vos mots"
             subtitle="Racontez-le comme vous le feriez à quelqu'un qui ne connaît pas l'association. On reformule ensuite pour le dossier officiel."
           >
+            <Field label="Cette demande est-elle une première demande ou un renouvellement ?">
+              <div className="flex gap-3">
+                {[
+                  { v: "premiere", l: "Première demande" },
+                  { v: "renouvellement", l: "Renouvellement" },
+                ].map((opt) => (
+                  <button
+                    key={opt.v}
+                    type="button"
+                    onClick={() => update({ type_demande: opt.v as "premiere" | "renouvellement" })}
+                    className={[
+                      "flex-1 h-[52px] rounded-[10px] border-[1.5px] font-medium transition-all",
+                      form.type_demande === opt.v
+                        ? "border-sapin bg-sapin-soft text-sapin-deep"
+                        : "border-border-soft text-ink-soft hover:border-sapin/40",
+                    ].join(" ")}
+                  >
+                    {opt.l}
+                  </button>
+                ))}
+              </div>
+            </Field>
+
+            {form.type_demande === "renouvellement" && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-5 space-y-5">
+                <div>
+                  <p className="text-sm font-semibold text-amber-900 mb-0.5">Bilan de l'année précédente</p>
+                  <p className="text-sm text-amber-700">
+                    Ces informations sont obligatoires pour les bailleurs — elles montrent l'utilisation
+                    de la subvention reçue et la continuité de votre action.
+                  </p>
+                </div>
+                <Field label="Montant de la subvention reçue l'année précédente (€)">
+                  <input
+                    type="number"
+                    className="field-input"
+                    placeholder="Ex. 500"
+                    value={form.bilan_subvention_anterieure}
+                    min={0}
+                    max={1000000}
+                    onChange={(e) => update({ bilan_subvention_anterieure: e.target.value })}
+                  />
+                </Field>
+                <Field
+                  label="Bilan des actions réalisées"
+                  hint="Résumez ce qui a été accompli : activités organisées, fréquentation, résultats concrets, difficultés rencontrées."
+                >
+                  <textarea
+                    rows={5}
+                    className="field-textarea"
+                    placeholder="Ex. Nous avons organisé 242 activités, touché 82 adhérents… Des groupes de paroles, de l'aquagym, des ateliers diététiques…"
+                    value={form.bilan_activites}
+                    maxLength={3000}
+                    onChange={(e) => update({ bilan_activites: e.target.value })}
+                  />
+                </Field>
+                <Field label="Nombre de bénéficiaires réels (exercice précédent)">
+                  <input
+                    type="number"
+                    className="field-input"
+                    placeholder="Ex. 82"
+                    value={form.bilan_nb_beneficiaires_reel}
+                    min={0}
+                    max={1000000}
+                    onChange={(e) => update({ bilan_nb_beneficiaires_reel: e.target.value })}
+                  />
+                </Field>
+                <div className="bg-white/70 rounded-lg p-3 text-sm text-amber-800">
+                  Pensez à joindre dans l'étape <strong>Documents</strong> : la justification de la subvention
+                  précédente (bilan financier, copies de factures acquittées).
+                </div>
+              </div>
+            )}
+
             <div className="flex gap-3">
               {[
                 { v: "ville", l: "Ville / mairie" },
@@ -502,6 +597,7 @@ export default function NouvelleDemande() {
                 ["Email", form.contact_email],
               ]} />
               <SummaryBlock title="Projet" rows={[
+                ["Nature", form.type_demande === "renouvellement" ? "Renouvellement" : "Première demande"],
                 ["Bailleur", `${form.bailleur_type === "ville" ? "Ville" : "Département"} — ${form.bailleur_nom}`],
                 ["Titre", form.titre_projet],
                 ["Description", form.objectif_projet],
@@ -509,6 +605,13 @@ export default function NouvelleDemande() {
                 ["Période", `${form.periode_debut || "—"} → ${form.periode_fin || "—"}`],
                 ["Montant demandé", form.montant_demande ? `${form.montant_demande} €` : "—"],
               ]} />
+              {form.type_demande === "renouvellement" && (
+                <SummaryBlock title="Bilan année précédente" rows={[
+                  ["Subvention reçue", form.bilan_subvention_anterieure ? `${form.bilan_subvention_anterieure} €` : "—"],
+                  ["Bénéficiaires réels", form.bilan_nb_beneficiaires_reel || "—"],
+                  ["Bilan des actions", form.bilan_activites || "—"],
+                ]} />
+              )}
             </div>
             {error && (
               <p className="text-error text-sm bg-error-soft rounded-xl p-3">{error}</p>

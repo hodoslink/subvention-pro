@@ -52,6 +52,10 @@ export async function POST(req: NextRequest) {
     .from('demandes')
     .insert({
       association_id: input.association_id,
+      type_demande: input.type_demande ?? 'premiere',
+      bilan_subvention_anterieure: input.bilan_subvention_anterieure ?? null,
+      bilan_activites: input.bilan_activites || null,
+      bilan_nb_beneficiaires_reel: input.bilan_nb_beneficiaires_reel ?? null,
       bailleur_type: input.bailleur_type,
       bailleur_nom: input.bailleur_nom,
       montant_demande: input.montant_demande ?? null,
