@@ -34,8 +34,6 @@ type FormState = {
   contact_role: string;
   contact_email: string;
   contact_telephone: string;
-  iban: string;
-  bic: string;
   // Projet
   bailleur_type: string;
   bailleur_nom: string;
@@ -54,7 +52,6 @@ const initialState: FormState = {
   nom: "", siret: "", siren: "", rna: "", adresse: "", code_postal: "", ville: "",
   forme_juridique: "", nb_membres: "", date_creation: "",
   contact_nom: "", contact_role: "", contact_email: "", contact_telephone: "",
-  iban: "", bic: "",
   bailleur_type: "ville", bailleur_nom: "", montant_demande: "",
   titre_projet: "", objectif_projet: "", public_beneficiaire: "",
   nb_beneficiaires_estime: "", periode_debut: "", periode_fin: "",
@@ -253,24 +250,6 @@ export default function NouvelleDemande() {
                 onChange={(e) => update({ contact_telephone: e.target.value })}
               />
             </Field>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Field label="IBAN" hint="Pour le versement de la subvention.">
-                <input
-                  className="field-input"
-                  placeholder="FR76 XXXX XXXX…"
-                  value={form.iban}
-                  onChange={(e) => update({ iban: e.target.value })}
-                />
-              </Field>
-              <Field label="BIC">
-                <input
-                  className="field-input"
-                  placeholder="Ex. BNPAFRPP"
-                  value={form.bic}
-                  onChange={(e) => update({ bic: e.target.value })}
-                />
-              </Field>
-            </div>
             <NavButtons
               onBack={back}
               onNext={next}
@@ -306,7 +285,6 @@ export default function NouvelleDemande() {
             </div>
             <FileDrop label="Statuts de l'association" onFile={() => {}} optional />
             <FileDrop label="Récépissé RNA ou extrait Journal Officiel" onFile={() => {}} optional />
-            <FileDrop label="RIB de l'association" onFile={() => {}} />
             <FileDrop label="Derniers comptes approuvés" onFile={() => {}} optional />
             <FileDrop label="Dernier rapport d'activité" onFile={() => {}} optional />
             <NavButtons onBack={back} onNext={next} />
@@ -329,7 +307,7 @@ export default function NouvelleDemande() {
                   type="button"
                   onClick={() => update({ bailleur_type: opt.v })}
                   className={[
-                    "flex-1 py-3 rounded-xl border-2 font-medium transition-all",
+                    "flex-1 h-[52px] rounded-[10px] border-[1.5px] font-medium transition-all",
                     form.bailleur_type === opt.v
                       ? "border-sapin bg-sapin-soft text-sapin-deep"
                       : "border-border-soft text-ink-soft hover:border-sapin/40",
@@ -361,7 +339,7 @@ export default function NouvelleDemande() {
             >
               <textarea
                 rows={5}
-                className="w-full text-base leading-relaxed p-4 rounded-xl border-[1.5px] border-border-soft bg-white text-ink focus:border-sapin focus:ring-4 focus:ring-sapin-soft focus:outline-none placeholder:text-ink-soft/60 resize-y"
+                className="field-textarea"
                 placeholder="Écrivez ici, avec vos mots — quelques phrases suffisent…"
                 value={form.objectif_projet}
                 onChange={(e) => update({ objectif_projet: e.target.value })}
@@ -374,7 +352,7 @@ export default function NouvelleDemande() {
                 onChange={(e) => update({ public_beneficiaire: e.target.value })}
               />
             </Field>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="field-row">
               <Field label="Combien de personnes environ ?">
                 <input
                   type="number"
@@ -394,8 +372,8 @@ export default function NouvelleDemande() {
                 />
               </Field>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Field label="Le projet démarre quand ?">
+            <div className="field-row">
+              <Field label="Le projet démarre quand ?" hint="Date de lancement des actions.">
                 <input
                   type="date"
                   className="field-input"
@@ -418,7 +396,7 @@ export default function NouvelleDemande() {
                   }}
                 />
               </Field>
-              <Field label="Et se termine quand ?" hint="Pré-rempli à un an plus tard — modifiable si besoin.">
+              <Field label="Et se termine quand ?" hint="Pré-rempli à un an, modifiable.">
                 <input
                   type="date"
                   className="field-input"
@@ -469,7 +447,7 @@ export default function NouvelleDemande() {
                     <button
                       type="button"
                       onClick={() => setBudget(budget.filter((_, idx) => idx !== i))}
-                      className="text-ink-soft hover:text-error px-2"
+                      className="h-[52px] w-[44px] shrink-0 flex items-center justify-center text-ink-soft hover:text-error transition-colors"
                       aria-label="Supprimer cette ligne"
                     >
                       ✕

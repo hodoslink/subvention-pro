@@ -27,8 +27,6 @@ create table associations (
   -- Gouvernance & docs administratifs (réutilisables sur chaque demande)
   nb_membres integer,
   date_creation date,
-  iban text,
-  bic text,
 
   -- Fichiers (URLs Supabase Storage)
   fichier_statuts_url text,

@@ -94,25 +94,70 @@ h1, h2, h3, .font-display {
   animation: fade-in-up 0.35s ease-out;
 }
 
-/* Champs de formulaire — grands, lisibles, faciles à viser */
-.field-input {
+/* Champs de formulaire — hauteur fixe pour un alignement parfait entre
+   tous les inputs, selects, et textareas, même côte à côte en grille. */
+.field-input,
+.field-textarea,
+select.field-input {
   width: 100%;
+  font-family: inherit;
   font-size: 1.02rem;
-  padding: 0.95rem 1.1rem;
+  line-height: 1.4;
+  color: var(--ink);
+  background: #ffffff;
   border: 1.5px solid var(--border-soft);
   border-radius: 10px;
-  background: #ffffff;
-  color: var(--ink);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-sizing: border-box;
 }
 
-.field-input:focus {
+.field-input {
+  height: 52px;
+  padding: 0 1.1rem;
+}
+
+.field-textarea {
+  min-height: 132px;
+  padding: 0.95rem 1.1rem;
+  resize: vertical;
+}
+
+/* Les selects natifs ont un rendu propre au navigateur — on neutralise
+   l'apparence par défaut pour qu'ils matchent exactement les inputs. */
+select.field-input {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235b6058' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 16px;
+  padding-right: 2.6rem;
+}
+
+.field-input:focus,
+.field-textarea:focus {
   border-color: var(--sapin);
   box-shadow: 0 0 0 3.5px var(--sapin-soft);
   outline: none;
 }
 
-.field-input::placeholder {
+.field-input::placeholder,
+.field-textarea::placeholder {
   color: var(--ink-soft);
   opacity: 0.55;
+}
+
+/* Grilles de champs côte à côte — alignement garanti en hauteur ET en
+   largeur grâce à `items-start` + colonnes égales sur le parent. */
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+@media (max-width: 640px) {
+  .field-row {
+    grid-template-columns: 1fr;
+  }
 }

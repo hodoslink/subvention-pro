@@ -21,9 +21,6 @@ export async function POST(req: NextRequest) {
       contact_email: body.contact_email,
       contact_telephone: body.contact_telephone,
       nb_membres: body.nb_membres,
-      date_creation: body.date_creation || null,
-      iban: body.iban,
-      bic: body.bic,
       statut_profil: 'complet',
     })
     .select()
