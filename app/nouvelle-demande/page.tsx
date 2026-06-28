@@ -194,6 +194,7 @@ export default function NouvelleDemande() {
                 className="field-input"
                 placeholder="Ex. W123456789"
                 value={form.rna}
+                maxLength={10}
                 onChange={(e) => update({ rna: e.target.value })}
               />
             </Field>
@@ -203,6 +204,8 @@ export default function NouvelleDemande() {
                 className="field-input"
                 placeholder="Ex. 180"
                 value={form.nb_membres}
+                min={0}
+                max={1000000}
                 onChange={(e) => update({ nb_membres: e.target.value })}
               />
             </Field>
@@ -221,6 +224,7 @@ export default function NouvelleDemande() {
                 className="field-input"
                 placeholder="Ex. Marie Dupont"
                 value={form.contact_nom}
+                maxLength={150}
                 onChange={(e) => update({ contact_nom: e.target.value })}
               />
             </Field>
@@ -229,6 +233,7 @@ export default function NouvelleDemande() {
                 className="field-input"
                 placeholder="Ex. Présidente, Trésorier…"
                 value={form.contact_role}
+                maxLength={100}
                 onChange={(e) => update({ contact_role: e.target.value })}
               />
             </Field>
@@ -238,6 +243,7 @@ export default function NouvelleDemande() {
                 className="field-input"
                 placeholder="exemple@association.fr"
                 value={form.contact_email}
+                maxLength={255}
                 onChange={(e) => update({ contact_email: e.target.value })}
               />
             </Field>
@@ -247,6 +253,7 @@ export default function NouvelleDemande() {
                 className="field-input"
                 placeholder="06 00 00 00 00"
                 value={form.contact_telephone}
+                maxLength={20}
                 onChange={(e) => update({ contact_telephone: e.target.value })}
               />
             </Field>
@@ -322,6 +329,7 @@ export default function NouvelleDemande() {
                 className="field-input"
                 placeholder="Ex. Mairie de Pantin"
                 value={form.bailleur_nom}
+                maxLength={200}
                 onChange={(e) => update({ bailleur_nom: e.target.value })}
               />
             </Field>
@@ -330,6 +338,7 @@ export default function NouvelleDemande() {
                 className="field-input"
                 placeholder="Ex. Ateliers d'activité physique adaptée pour seniors"
                 value={form.titre_projet}
+                maxLength={200}
                 onChange={(e) => update({ titre_projet: e.target.value })}
               />
             </Field>
@@ -342,6 +351,7 @@ export default function NouvelleDemande() {
                 className="field-textarea"
                 placeholder="Écrivez ici, avec vos mots — quelques phrases suffisent…"
                 value={form.objectif_projet}
+                maxLength={3000}
                 onChange={(e) => update({ objectif_projet: e.target.value })}
               />
             </Field>
@@ -349,6 +359,7 @@ export default function NouvelleDemande() {
               <input
                 className="field-input"
                 value={form.public_beneficiaire}
+                maxLength={300}
                 onChange={(e) => update({ public_beneficiaire: e.target.value })}
               />
             </Field>
@@ -359,6 +370,8 @@ export default function NouvelleDemande() {
                   className="field-input"
                   placeholder="Ex. 40"
                   value={form.nb_beneficiaires_estime}
+                  min={0}
+                  max={1000000}
                   onChange={(e) => update({ nb_beneficiaires_estime: e.target.value })}
                 />
               </Field>
@@ -368,6 +381,8 @@ export default function NouvelleDemande() {
                   className="field-input"
                   placeholder="Ex. 800"
                   value={form.montant_demande}
+                  min={0}
+                  max={1000000}
                   onChange={(e) => update({ montant_demande: e.target.value })}
                 />
               </Field>
@@ -421,11 +436,15 @@ export default function NouvelleDemande() {
           >
             <div className="space-y-3">
               {budget.map((ligne, i) => (
-                <div key={i} className="flex gap-3">
+                <div
+                  key={i}
+                  className="grid grid-cols-1 sm:grid-cols-[1fr_128px_44px] gap-3 items-start"
+                >
                   <input
-                    className="field-input flex-1"
+                    className="field-input w-full"
                     placeholder="Ex. Salaire de l'éducateur sportif"
                     value={ligne.poste}
+                    maxLength={200}
                     onChange={(e) => {
                       const copy = [...budget];
                       copy[i].poste = e.target.value;
@@ -434,7 +453,7 @@ export default function NouvelleDemande() {
                   />
                   <input
                     type="number"
-                    className="field-input w-32"
+                    className="field-input w-full"
                     placeholder="€"
                     value={ligne.montant}
                     onChange={(e) => {
@@ -443,15 +462,17 @@ export default function NouvelleDemande() {
                       setBudget(copy);
                     }}
                   />
-                  {budget.length > 1 && (
+                  {budget.length > 1 ? (
                     <button
                       type="button"
                       onClick={() => setBudget(budget.filter((_, idx) => idx !== i))}
-                      className="h-[52px] w-[44px] shrink-0 flex items-center justify-center text-ink-soft hover:text-error transition-colors"
+                      className="h-[52px] w-full sm:w-[44px] shrink-0 flex items-center justify-center text-ink-soft hover:text-error transition-colors"
                       aria-label="Supprimer cette ligne"
                     >
                       ✕
                     </button>
+                  ) : (
+                    <span className="hidden sm:block" />
                   )}
                 </div>
               ))}

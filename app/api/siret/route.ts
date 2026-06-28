@@ -1,9 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { rateLimit, getClientIp } from '@/lib/rateLimit';
+
+const MAX_QUERY_LENGTH = 120;
 
 // API publique gratuite, aucune clé requise : recherche-entreprises.api.gouv.fr
 export async function GET(req: NextRequest) {
-  const q = req.nextUrl.searchParams.get('q');
-  if (!q || q.trim().length < 3) {
+  const ip = getClientIp(req);
+  const { allowed } = rateLimit(`siret:${ip}`, { max: 30, windowMs: 60_000 });
+  if (!allowed) {
+    return NextResponse.json(
+      { results: [], error: 'too_many_requests' },
+      { status: 429 }
+    );
+  }
+
+  const qRaw = req.nextUrl.searchParams.get('q');
+  if (!qRaw) {
+    return NextResponse.json({ results: [] });
+  }
+
+  const q = qRaw.slice(0, MAX_QUERY_LENGTH).trim();
+  if (q.length < 3) {
     return NextResponse.json({ results: [] });
   }
 

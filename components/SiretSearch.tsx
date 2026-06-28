@@ -71,6 +71,7 @@ export function SiretSearch({
         className="field-input"
         placeholder="Ex. Association Sportive du Vallon"
         value={query}
+        maxLength={120}
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => results.length > 0 && setOpen(true)}
         autoComplete="off"
